@@ -1,24 +1,22 @@
 <?php
 
-namespace Nextpack\Nextpack;
+namespace guifcoelho\NeuralNetworks;
 
 /**
- * Class Sample
- *
- * @author  Mahmoud Zalt  <mahmoud@zalt.me>
+ * Class Ann
  */
-class Sample
+class Ann
 {
 
     /**
-     * @var  \Nextpack\Nextpack\Config
+     * @var  \guifcoelho\NeuralNetworks\Config
      */
     private $config;
 
     /**
      * Sample constructor.
      *
-     * @param \Nextpack\Nextpack\Config $config
+     * @param \guifcoelho\NeuralNetworks\Config $config
      */
     public function __construct(Config $config)
     {

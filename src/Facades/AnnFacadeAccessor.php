@@ -1,15 +1,13 @@
 <?php
 
-namespace Nextpack\Nextpack\Facades;
+namespace guifcoelho\NeuralNetworks\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
 /**
- * Class SampleFacadeAccessor
- *
- * @author  Mahmoud Zalt  <mahmoud@zalt.me>
+ * Class AnnFacadeAccessor
  */
-class SampleFacadeAccessor extends Facade
+class AnnFacadeAccessor extends Facade
 {
 
     /**
@@ -19,6 +17,6 @@ class SampleFacadeAccessor extends Facade
      */
     protected static function getFacadeAccessor()
     {
-        return 'nextpack.sample';
+        return 'neuralnetworks.ann';
     }
 }

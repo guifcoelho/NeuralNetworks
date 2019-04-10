@@ -10,8 +10,8 @@
          processIsolation="false"
          stopOnFailure="false">
     <testsuites>
-        <testsuite name="Nextpack Test Suite">
-            <directory suffix=".php">./tests</directory>
+        <testsuite name="Testsuit">
+            <directory suffix="Test.php">./tests</directory>
             <exclude>./tests/TestCase.php</exclude>
         </testsuite>
     </testsuites>

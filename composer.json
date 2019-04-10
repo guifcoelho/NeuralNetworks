@@ -1,17 +1,14 @@
 {
-  "name": "nextpack/nextpack",
-  "description": "Nextpack is a PHP Packages Framework (Starter Project)",
+  "name": "guifcoelho/NeuralNetworks",
+  "description": "Package for training and predicting with neural networks",
   "license": "MIT",
   "keywords": [
-    "NextPack",
-    "Starter"
+    "Neural networks"
   ],
   "authors": [
     {
-      "name": "Mahmoud Zalt",
-      "email": "mahmoud@zalt.me",
-      "homepage": "http://www.zalt.me",
-      "role": "Coffee Maker :)"
+      "name": "Guilherme Coelho",
+      "email": "coelhoxz@gmail.com"
     }
   ],
   "require": {
@@ -25,13 +22,13 @@
   },
   "autoload": {
     "psr-4": {
-      "Nextpack\\Nextpack\\": "src",
-      "Nextpack\\Library\\": "src/library"
+      "guifcoelho\\NeuralNetworks\\": "src",
+      "NeuralNetworks\\Library\\": "src/library"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Nextpack\\Nextpack\\Tests\\": "tests"
+      "guifcoelho\\NeuralNetworks\\Tests\\": "tests"
     }
   },
   "scripts": {

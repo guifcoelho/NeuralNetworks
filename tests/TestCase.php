@@ -1,6 +1,6 @@
 <?php
 
-namespace Nextpack\Nextpack\Tests;
+namespace guifcoelho\NeuralNetworks\Tests;
 
 use PHPUnit_Framework_TestCase as PHPUnit;
 

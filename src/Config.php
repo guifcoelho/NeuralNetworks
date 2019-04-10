@@ -1,14 +1,12 @@
 <?php
 
-namespace Nextpack\Nextpack;
+namespace guifcoelho\NeuralNetworks;
 
 use Illuminate\Config\Repository;
-use Nextpack\Nextpack\Exceptions\ConfigFileNotFoundException;
+use guifcoelho\NeuralNetworks\Exceptions\ConfigFileNotFoundException;
 
 /**
  * Class Config
- *
- * @author  Mahmoud Zalt  <mahmoud@zalt.me>
  */
 class Config
 {
@@ -16,7 +14,7 @@ class Config
     /**
      * Config file name
      */
-    CONST CONFIG_FILE_NAME = "nextpack";
+    CONST CONFIG_FILE_NAME = "neuralnetworks";
 
     /**
      * @var  \Illuminate\Config\Repository
