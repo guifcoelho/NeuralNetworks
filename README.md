@@ -1,1 +1,1 @@
-Pacote para treinar e fazer predições com redes neurais
+Package to train and predict with neural networks
