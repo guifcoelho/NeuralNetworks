@@ -2,13 +2,12 @@
 
 namespace guifcoelho\NeuralNetworks\Tests;
 
-use guifcoelho\NeuralNetworks\Config;
 use guifcoelho\NeuralNetworks\Libs\Matrix;
-use guifcoelho\NeuralNetworks\Libs\Utils;
+use guifcoelho\NeuralNetworks\Libs\Helpers;
 use guifcoelho\NeuralNetworks\Exceptions\MatrixExceptions\DimensionsException;
 
 /**
- * Class AnnTest
+ * Class MatrixTest
  *
  * @category Test
  * @package  guifcoelho\NeuralNetworks\Tests
@@ -74,7 +73,7 @@ class MatrixTest extends TestCase
             [60, 75]
         ];
 
-        $this->assertTrue(Utils::checkEqualArrays($matrix3->getMatrix(), $matrix_result));
+        $this->assertTrue(Helpers::checkEqualArrays($matrix3->getMatrix(), $matrix_result));
     }
 
 }

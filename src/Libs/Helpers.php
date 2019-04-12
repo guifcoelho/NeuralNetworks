@@ -1,13 +1,14 @@
 <?php
+declare(strict_types=1);
 
 namespace guifcoelho\NeuralNetworks\Libs;
 
-class Utils
+class Helpers
 {
     /**
      * Tests if two arrays are equal (dimensions and elements)
      */
-    static function checkEqualArrays(array $arr1, array $arr2): bool
+    public static function checkEqualArrays(array $arr1, array $arr2): bool
     {
         //Checks dimensions of the arrays
         if(count($arr1) != count($arr2)){
@@ -32,4 +33,25 @@ class Utils
         //If code is here then arrays are equal
         return true;
     }
+
+    /**
+     * Generates an array of random numbers
+     * 
+     * @param int $min
+     * @param int $max
+     * @param int $size
+     * @return array
+     */
+    public static function array_of_random_numbers(int $min, int $max, int $size): array
+    {
+        $arr = array_rand( range( $min , $max*1000 , 1 ), $size );
+        if($size == 1){
+            $arr = [$arr];
+        }
+        forEach($arr as &$el){
+            $el = $el/1000;
+        }
+        return $arr;
+    }
+
 }

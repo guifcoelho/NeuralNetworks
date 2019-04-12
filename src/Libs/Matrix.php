@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace guifcoelho\NeuralNetworks\Libs;
 
@@ -127,35 +128,141 @@ class Matrix
      * @param Matrix $matrix Matrix to be multiplied for
      * @return Matrix
      */
-    public function multiply(self $matrix):self
+    public function multiply(self $matrix, bool $element_wise = false):self
     {
-        //Columns = Rows?
-        if($this->columns != $matrix->getRows()){
-            throw new MultiplicationException();
-        }else{
-            $matrix1 = $this->getMatrix();
-            $num_rows = $this->rows;
-            $matrix2 = $matrix->getMatrix();
-            $num_cols = $matrix->getColumns();
-            
-            $new_matrix = [];
+        $new_matrix = [];
+        $matrix1 = $this->getMatrix();
+        $matrix2 = $matrix->getMatrix();
 
-            for($i=0; $i < $num_rows; $i++){
-                $row = $matrix1[$i];
-                $new_row = [];
-                for($j=0; $j < $num_cols; $j++){
-                    $col = array_column($matrix2, $j);
-                    $sum = 0;
-                    for($k = 0; $k < $this->columns; $k++){
-                        $sum += $row[$k] * $col[$k];
+        if(!$element_wise){
+            //Columns = Rows?
+            if($this->columns != $matrix->getRows()){
+                throw new MultiplicationException();
+            }else{
+                $num_rows = $this->rows;
+                $num_cols = $matrix->getColumns();
+                for($i=0; $i < $num_rows; $i++){
+                    $row = $matrix1[$i];
+                    $new_row = [];
+                    for($j=0; $j < $num_cols; $j++){
+                        $col = array_column($matrix2, $j);
+                        $sum = 0;
+                        for($k = 0; $k < $this->columns; $k++){
+                            $sum += $row[$k] * $col[$k];
+                        }
+                        $new_row[]=$sum;
                     }
-                    $new_row[]=$sum;
+                    $new_matrix[]=$new_row;
                 }
-                $new_matrix[]=$new_row;
             }
+        }else{
+            if($this->rows != $matrix->getRows() || $this->columns != $matrix->getColumns()){
+                throw new MultiplicationException();
+            }else{
+                $matrix1 = $this->getMatrix();
+                $matrix2 = $matrix->getMatrix();
+                for($i=0; $i < $this->rows; $i++){
+                    $row = [];
+                    for($j=0; $j < $this->columns; $j++){
+                        $row[] = $matrix1[$i][$j] * $matrix2[$i][$j];
+                    }
+                    $new_matrix[] = $row;
+                }
+            }
+        }
+        return new self($new_matrix);
+    }
 
+    /**
+     * Sums a row vector to each line of the matrix
+     * 
+     * @var Matrix $row_vector Row vector to be added
+     * @var bool $sum True of summing and False for subtracting
+     */
+    public function add_row_vector(self $row_vector, bool $sum = true): self
+    {
+        $arr_row_vector = $row_vector->getMatrix();
+        $new_matrix = $this->matrix;
+        $signal = $sum ? 1 : -1;
+        for($i=0; $i < $this->rows; $i++){
+            for($j=0; $j < $this->columns; $j++){
+                $new_matrix[$i][$j] = $new_matrix[$i][$j] + $signal * $arr_row_vector[$j];
+            }
+        }
+
+        return new self($new_matrix);
+    }
+
+    /**
+     * Transforms the matrix by applying a callback function
+     * 
+     * @var callable $function Callback function to be applied
+     * @return Matrix
+     */
+    public function transform(callable $function): self
+    {
+        $new_matrix = $this->matrix;
+        for($i = 0; $i < $this->rows; $i++){
+            $row = $this->matrix[$i];
+            $new_matrix[$i] = array_map($function, $row);
+        }
+
+        return new self($new_matrix);
+    }
+
+    /**
+     * Sums two matrixes element-wise. Both matrixes must have the same dimensions
+     * 
+     * @var Matrix $matrix Matrix to be added
+     * @var float $scalar Multiplies the second matrix
+     */
+    public function add_matrix(self $matrix, float $scalar = 1): self
+    {
+        if($this->rows != $matrix->getRows() || $this->columns != $matrix->getColumns()){
+            throw new DimensionsException();
+        }else{
+            $arr_matrix = $matrix->getMatrix();
+            $new_matrix = [];
+            if($this->rows == 1){
+                for($j = 0; $j < $this->columns; $j++){
+                    $new_matrix[] = $this->matrix[$j] + $scalar * $arr_matrix[$j];
+                }
+            }else{
+                for($i = 0; $i < $this->rows; $i++){
+                    $new_matrix[] = array_fill(0,$this->columns,0);
+                    for($j = 0; $j < $this->columns; $j++){
+                        $new_matrix[$i][$j] = $this->matrix[$i][$j] + $scalar * $arr_matrix[$i][$j];
+                    }
+                }
+            }
+            
             return new self($new_matrix);
         }
     }
+
+    /**
+     * Sums the matrix along some axis
+     * 
+     * @var int $axis The axis to be summed
+     * @return Matrix
+     */
+    public function sum_along_axis(int $axis = 1): self
+    {
+        $arr = [];
+        if($axis == 1){
+            //Returns a column vector
+            for($i = 0; $i < $this->rows; $i++){
+                $arr[] = [array_sum($this->matrix[$i])];
+            }
+        }else{
+            //Returns row vector
+            for($j = 0; $j < $this->columns; $j++){
+                $column = array_column($this->matrix,$j);
+                $arr[] = array_sum($column);
+            }
+        }
+        return new self($arr);
+    }
+
 }
 

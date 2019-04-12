@@ -11,7 +11,7 @@
          stopOnFailure="false">
     <testsuites>
         <testsuite name="Testsuit">
-            <directory suffix="Test.php">./tests</directory>
+            <directory suffix="AnnTest.php">./tests</directory>
             <exclude>./tests/TestCase.php</exclude>
         </testsuite>
     </testsuites>

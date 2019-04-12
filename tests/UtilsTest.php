@@ -2,9 +2,9 @@
 
 namespace guifcoelho\NeuralNetworks\Tests;
 
-use guifcoelho\NeuralNetworks\Libs\Utils;
+use guifcoelho\NeuralNetworks\Libs\Helpers;
 
-class UtilsTest extends TestCase
+class HelpersTest extends TestCase
 {
     public function test_equal_arr_ok(){
 
@@ -18,7 +18,7 @@ class UtilsTest extends TestCase
             [60, 75]
         ];
 
-        $this->assertTrue(Utils::checkEqualArrays($arr1, $arr2));
+        $this->assertTrue(Helpers::checkEqualArrays($arr1, $arr2));
     }
 
     public function test_equal_arr_nok(){
@@ -33,13 +33,13 @@ class UtilsTest extends TestCase
             [0, 0]
         ];
 
-        $this->assertFalse(Utils::checkEqualArrays($arr1, $arr2));
+        $this->assertFalse(Helpers::checkEqualArrays($arr1, $arr2));
 
         $arr3 = [
             [0, 0]
         ];
 
-        $this->assertFalse(Utils::checkEqualArrays($arr1, $arr3));
+        $this->assertFalse(Helpers::checkEqualArrays($arr1, $arr3));
     }
 
 }
