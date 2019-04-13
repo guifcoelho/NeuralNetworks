@@ -9,7 +9,9 @@ use guifcoelho\NeuralNetworks\Exceptions\MatrixExceptions\MultiplicationExceptio
 /**
  * Class Matrix
  * 
- * Operações em vetores como se fossem matrizes
+ * Operations with matrixes.
+ * 
+ * Strongly inspired in https://github.com/php-ai/php-ml
  */
 class Matrix
 {
@@ -43,6 +45,7 @@ class Matrix
             //Vetor linha
             $this->rows = 1;
             $this->columns = count($matrix);
+            $matrix = [$matrix];
         }else{
             if(!$this->validate_structure($matrix))
                 throw new DimensionsException();
@@ -106,9 +109,13 @@ class Matrix
      */
     public function transpose(): self
     {
+        if($this->rows == 1 && $this->columns == 1){
+            return new Matrix($this->matrix[0]);
+        }
+
         $newMatrix = [];
         if($this->rows == 1){
-            forEach($this->matrix as $el){
+            forEach($this->matrix[0] as $el){
                 //Sets each element as an array
                 $newMatrix[] = [$el];
             }
@@ -181,7 +188,7 @@ class Matrix
      */
     public function add_row_vector(self $row_vector, bool $sum = true): self
     {
-        $arr_row_vector = $row_vector->getMatrix();
+        $arr_row_vector = $row_vector->getMatrix()[0];
         $new_matrix = $this->matrix;
         $signal = $sum ? 1 : -1;
         for($i=0; $i < $this->rows; $i++){
@@ -199,12 +206,15 @@ class Matrix
      * @var callable $function Callback function to be applied
      * @return Matrix
      */
-    public function transform(callable $function): self
+    public function transform(callable $function, bool $element_wise = true): self
     {
         $new_matrix = $this->matrix;
         for($i = 0; $i < $this->rows; $i++){
-            $row = $this->matrix[$i];
-            $new_matrix[$i] = array_map($function, $row);
+            if($element_wise){
+                $new_matrix[$i] = array_map($function, $this->matrix[$i]);
+            }else{
+                $new_matrix[$i] = call_user_func($function, $this->matrix[$i]);
+            }
         }
 
         return new self($new_matrix);
@@ -222,7 +232,20 @@ class Matrix
             throw new DimensionsException();
         }else{
             $arr_matrix = $matrix->getMatrix();
+            
+            if($this->rows == 1 && $this->columns == 1 && is_array($this->matrix[0])){
+                return new Matrix([[$this->matrix[0][0] + $scalar * $arr_matrix[0][0]]]);
+            }
+
             $new_matrix = [];
+
+            if($this->rows == 1 && $this->columns > 1 && is_array($this->matrix[0])){
+                for($j = 0; $j < $this->columns; $j++){
+                    $new_matrix[] = $this->matrix[0][$j] + $scalar * $arr_matrix[0][$j];
+                }
+                return new Matrix([$new_matrix]);
+            }
+
             if($this->rows == 1){
                 for($j = 0; $j < $this->columns; $j++){
                     $new_matrix[] = $this->matrix[$j] + $scalar * $arr_matrix[$j];

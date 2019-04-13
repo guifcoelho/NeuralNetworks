@@ -12,108 +12,175 @@ use guifcoelho\NeuralNetworks\Libs\Matrix;
 class Ann
 {
     private $namespace_functions = '\\guifcoelho\\NeuralNetworks\\Functions';
+
     /**
-     * @var array Hidden layers configuration
+     * ```string``` Type of problem: ```classification``` or ```regression```
+     * 
+     * @param string
+     */
+    private $problem_type;
+
+    /**
+     * ```array``` Hidden layers configuration
      * 
      * $hidden_layers_config = [
-     *      ["function", "nodes"], <- layer 1
-     *      ["function", "nodes"], <- layer 2
+     *      ["function", "nodes"],
+     *      ["function", "nodes"],
      *      ...
-     *      ["function", "nodes"], <- layer M
+     *      ["function", "nodes"]
      * ]
+     * 
+     * @param array 
      */
     private $hidden_layers_config;
 
     /**
-     * @var string Name of the activation function
+     * ```string``` Name of the activation function
+     * 
+     * @param string 
      */
     private $activation;
 
     /**
-     * @var float Learning rate for training the naural network
+     * ```float``` If greater or equals to the threshold then it will be classified as 1
+     * 
+     * @param float 
+     */
+    private $classification_threshold;
+
+    /**
+     * ```float``` Learning rate for training the naural network
+     * 
+     * @param float
      */
     private $learning_rate;
 
     /**
-     * @var int Number of epochs to train the neural network
+     * ```int``` Number of epochs to train the neural network
+     * 
+     * @param int
      */
     private $epochs;
 
     /**
-     * @var int Print training progression every given epochs
+     * ```int``` Print training progression every given epochs
+     * 
+     * @param int 
      */
-    private $print_results;
+    private $print_intervals;
+
     /**
-     * @var array Input values for the training set
+     * ```array``` Input values for the training set
+     * 
+     * @param array
      */
     private $Xtrain;
 
     /**
-     * @var array Response values for the training set
+     * ```array``` Response values for the training set
+     * 
+     * @param array
      */
     private $Ytrain;
 
     /**
-     * @var array Input values for the test set
+     * ```array``` Input values for the test set
+     * 
+     * @param array
      */
     private $Xtest;
 
     /**
-     * @var array Response values for the test set
+     * ```array``` Response values for the test set
+     * 
+     * @param array
      */
     private $Ytest;
 
     /**
-     * @var int Number of labels of the response variable
+     * ```int``` Number of labels of the response variable
+     * 
+     * @param int
      */
     private $labels;
 
     /**
-     * @var int Number of features of the training dataset
+     * ```int``` Number of features of the training dataset
+     * 
+     * @param int
      */
     private $features;
 
     /**
-     * @var array Weights of the neural network
+     * ```array``` Weights of the neural network
+     * 
+     * @param array
      */
     private $weights;
 
     /**
      * Initializes the neural network model
      */
-    public function __construct(array $config){
+    public function __construct(array $config)
+    {
+        $problem_type = "classification";
+        if(isset($config["problem_type"])){
+            $problem_type = $config["problem_type"];
+        }else{
+            print "\nNo problem type defined: setting as '{$problem_type}'\n";
+        }
+
         $hidden_layers_config = array(
             ["function" => "sigmoid","nodes" => 2] // 1 layer
         );
         if(isset($config["hidden_layers"])){
             $hidden_layers_config = $config["hidden_layers"];
+        }else{
+            print "\nNo hidden layers defined: setting as {count($hidden_layers_config)} layer with {$hidden_layers_config['nodes']} nodes\n";
         }
 
         $activation = "sigmoid";
         if(isset($config["activation"])){
             $activation = $config["activation"];
+        }else{
+            print "\nNo activation function defined: setting as '{$activation}'\n";
+        }
+
+        $classification_threshold = 0.5;
+        if(isset($config["classification_threshold"])){
+            $classification_threshold = $config["classification_threshold"];
+        }else{
+            print "\nNo classification threshold defined: setting as {$classification_threshold}\n";
         }
 
         $learning_rate = 0.001;
         if(isset($config["learning_rate"])){
             $learning_rate = $config["learning_rate"];
+        }else{
+            print "\nNo learning rate defined: setting as {$learning_rate}\n";
         }
 
         $epochs = 10000;
         if(isset($config["epochs"])){
             $epochs = $config["epochs"];
+        }else{
+            print "\nNo epochs defined: setting as {$epochs}\n";
         }
 
-        $print_results = 100;
-        if(isset($config["print_results"])){
-            $print_results = $config["print_results"];
+        $print_intervals = 100;
+        if(isset($config["print_intervals"])){
+            $print_intervals = $config["print_intervals"];
+        }else{
+            print "\nNo print intervals defined: setting as {$print_intervals}\n";
         }
 
+        $this->problem_type = $problem_type;
         $this->hidden_layers_config = $hidden_layers_config;
         $this->activation = $activation;
+        $this->classification_threshold = $classification_threshold;
         $this->learning_rate = $learning_rate;
         $this->epochs = $epochs;
-        $this->print_results = $print_results;
+        $this->print_intervals = $print_intervals;
     }
 
     /**
@@ -136,11 +203,23 @@ class Ann
             }
             
             if(!is_array($Y[0])){
-                $this->labels = 1;
-            }else{
-                $this->labels = count($Y[0]);
+                //Transforms a problem with one label with a problem with 2 labels
+                for($i = 0; $i < count($Y); $i++){
+                    $arr = [0,0];
+                    if($Y[$i] == 0){
+                        $arr[0] = 1;
+                    }else{
+                        $arr[1] = 1;
+                    }
+                    $Y[$i] = $arr;
+                }
             }
-
+            $this->labels = count($Y[0]);
+            if($this->problem_type == "classification" && $this->activation != "softmax"){
+                $this->activation = "softmax";
+                print "\nChanging activation function into 'softmax'\n";
+                print "---------------\n";
+            }
             $this->Xtrain = $X;
             $this->Ytrain = $Y;
         }else{
@@ -159,9 +238,9 @@ class Ann
     {
         $W = [];
         for($i = 0; $i < $D1; $i++){
-            $W[] = Helpers::array_of_random_numbers(-2,2,$D2);
+            $W[] = Helpers::array_of_random_numbers($D2);
         }
-        $b = Helpers::array_of_random_numbers(-2,2,$D2);
+        $b = Helpers::array_of_random_numbers($D2);
         return ["W" => $W, "b" => $b];
     }
     /**
@@ -209,19 +288,45 @@ class Ann
     private function compute_cost(array $Y_hat, bool $training = true)
     {
         $Y = $training ? $this->Ytrain : $this->Ytest;
-        if($this->labels == 1 & $this->activation != 'regression'){
-            //Classification problem with one label -> Binary cross entropy function
-            return Functions::binary_cross_entropy($Y, $Y_hat);
+        if($this->problem_type == "classification"){
+            return Functions::cross_entropy($Y, $Y_hat, $this->labels);
         }else{
-            if($this->labels > 1){
-                //Classification problem with more than one label
-                //return Functions::cross_entropy($Y, $Y_hat, $derivative);
-            }else{
-                //Regression problem
-                //return Functions::mean_square_error($Y, $Y_hat, $derivative);
-            }
+            //Regression problem
+            //return Functions::mean_square_error($Y, $Y_hat, $derivative);
         }
-        
+    }
+
+    /**
+     * Computes the classification prediction
+     * 
+     * @var array $Y_hat
+     * @return array
+     */
+    public function classification_prediction(array $Y_hat): array
+    {
+        $prediction = [];
+        for($i = 0; $i < count($Y_hat); $i++){
+            $arr = array_fill(0,$this->labels, 0);
+            $arg_max = array_keys($Y_hat[$i], max($Y_hat[$i]))[0];
+            $arr[$arg_max] = 1;
+            $prediction[] = $arr;
+        }
+        return $prediction;
+    }
+
+    /**
+     * Computes the classification rate
+     * 
+     * @return float
+     */
+    public function compute_classification_rate($Y, $Y_prediction): float
+    {
+        $sum = 0;
+        for($i = 0; $i < count($Y); $i++){
+            $class_true = array_keys($Y[$i], 1)[0];
+            $sum += $Y[$i][$class_true] == $Y_prediction[$i][$class_true] ? 1 : 0;
+        }
+        return $sum/count($Y);
     }
 
 
@@ -249,6 +354,7 @@ class Ann
             }else{
                 $layer = $hidden_layers[$h-1];
             }
+            
             $W = $weights[$h]["W"];
             $b = $weights[$h]["b"];
             $A = $layer->multiply($W)->add_row_vector($b, true);
@@ -262,15 +368,20 @@ class Ann
         }
 
         $layer = $hidden_layers[$H-1];
-        $W = $weights[count($weights)-1]["W"];
-        $b = $weights[count($weights)-1]["b"];
+        $W = $weights[$H]["W"];
+        $b = $weights[$H]["b"];
         $A = $layer->multiply($W)->add_row_vector($b);
+
+        $element_wise = true;
+        if($this->problem_type == 'classification'){
+            $element_wise = false;
+        }
         $Y_hat = $A->transform(function($value){
             $function = [$this->namespace_functions, $this->activation];
             return call_user_func_array($function, [$value, false]);
-        });
-
-        $cost = $this->compute_cost($Y_hat->transpose()->getMatrix()[0]);
+        }, $element_wise);
+  
+        $cost = $this->compute_cost($Y_hat->getMatrix());
 
         return [
             "hidden_layers" => $hidden_layers,
@@ -283,19 +394,20 @@ class Ann
      * Helper function to compute the derivatives for backpropagation
      * 
      * @var Matrix $A Auxiliary matrix for the chain rule
-     * @var Matrix $W Set of weights. Can be null when necessary
-     * @var Matrix $Z Current layer. Can be null when necessary
+     * @var $W Set of weights. Can be null when necessary
+     * @var $Z Current layer. Can be null when necessary
      * @var Matrix $Z_minus Next layer (going backwards on the neural network)
+     * @var $function The activation function
+     * @var $element_wise True for calculating on each element or False to calculate on the row
      */
-    private function compute_derivatives(Matrix $A, $W, $Z, Matrix $Z_minus, string $function = 'sigmoid'): array
+    private function compute_derivatives(Matrix $A, $W, $Z, Matrix $Z_minus, $function, $element_wise): array
     {
         if($Z != null || $W != null){
             $dZ = $Z->transform(function($value) use($function){
                 $function = [$this->namespace_functions, $function];
                 return call_user_func_array($function, [$value, true]);
-            });
+            }, $element_wise);
             $A = $A->multiply($W->transpose())->multiply($dZ, true);
-            
         }
         $dCost_dW = $Z_minus->transpose()->multiply($A);
         $dCost_db = $A->sum_along_axis(0);
@@ -324,8 +436,6 @@ class Ann
             $matX = $matX->transpose();
 
         $matY = new Matrix($this->Ytrain);
-        if($this->labels == 1)
-            $matY = $matY->transpose();
 
         $derivatives = [];
 
@@ -334,9 +444,12 @@ class Ann
         //------------------------------------
         $A = $Y_hat->add_matrix($matY, -1);
         $Z_minus = $hidden_layers[$H-1];
-        $computation = $this->compute_derivatives($A, null, null, $Z_minus, $this->activation);
-        $A = $computation["A"];
-        $derivatives = array_merge([$computation["derivatives"]], $derivatives);
+        $result = $this->compute_derivatives($A, null, null, $Z_minus, null, null);
+        $A = $result["A"];
+        $dW = $result["derivatives"]["W"];
+        $db = $result["derivatives"]["b"];
+        $weights[$H]["W"] = $weights[$H]["W"]->add_matrix($dW, -$this->learning_rate);
+        $weights[$H]["b"] = $weights[$H]["b"]->add_matrix($db, -$this->learning_rate);
 
         //------------------------------------
         // Interior layers
@@ -345,9 +458,12 @@ class Ann
             $W = $weights[$h+1]["W"];
             $Z = $hidden_layers[$h];
             $Z_minus = $hidden_layers[$h-1];
-            $computation = $this->compute_derivatives($A, $W, $Z, $Z_minus, $this->hidden_layers_config[$h]['function']);
-            $A = $computation["A"];
-            $derivatives = array_merge([$computation["derivatives"]], $derivatives);
+            $result = $this->compute_derivatives($A, $W, $Z, $Z_minus, $this->hidden_layers_config[$h]['function'], true);
+            $A = $result["A"];
+            $dW = $result["derivatives"]["W"];
+            $db = $result["derivatives"]["b"];
+            $weights[$h]["W"] = $weights[$h]["W"]->add_matrix($dW, -$this->learning_rate);
+            $weights[$h]["b"] = $weights[$h]["b"]->add_matrix($db, -$this->learning_rate);
         }
 
         //------------------------------------
@@ -355,11 +471,13 @@ class Ann
         //------------------------------------
         $W = $weights[1]["W"];
         $Z = $hidden_layers[0];
-        $computation = $this->compute_derivatives($A, $W, $Z, $matX, $this->hidden_layers_config[0]['function']);
-        $A = $computation["A"];
-        $derivatives = array_merge([$computation["derivatives"]], $derivatives);
+        $result = $this->compute_derivatives($A, $W, $Z, $matX, $this->hidden_layers_config[0]['function'], true);
+        $dW = $result["derivatives"]["W"];
+        $db = $result["derivatives"]["b"];
+        $weights[0]["W"] = $weights[0]["W"]->add_matrix($dW, -$this->learning_rate);
+        $weights[0]["b"] = $weights[0]["b"]->add_matrix($db, -$this->learning_rate);
 
-        return $derivatives;
+        return $weights;
     }
 
     /**
@@ -369,27 +487,36 @@ class Ann
      */
     public function train():void
     {
-        $weights = $this->initWeights();
         $cost = pow(10,10);
+        $weights = $this->initWeights();
         $feed_forward = $this->feed_forward($weights);
-
+        
         for($iter = 1; $iter <= $this->epochs; $iter++){
-            $derivatives = $this->backpropagation($weights, $feed_forward);
-            for($i = 0; $i < count($weights); $i++){
-                $d = $derivatives[$i];
-                $weights[$i]["W"] = $weights[$i]["W"]->add_matrix($d["W"], -$this->learning_rate);
-                $weights[$i]["b"] = $weights[$i]["b"]->add_matrix($d["b"], -$this->learning_rate);
-            }
-            $feed_forward = $this->feed_forward($weights);
-            // $Y_hat = $feed_forward["Y_hat"]->transpose()->getMatrix()[0];
-            // $cost_ = Functions::binary_cross_entropy($this->Ytrain, $Y_hat, false);
+            $weights_ = $this->backpropagation($weights, $feed_forward);
+            $feed_forward = $this->feed_forward($weights_);
+            $Y_hat = $feed_forward["Y_hat"]->getMatrix();
             $cost_ = $feed_forward["cost"];
-            if($iter % $this->print_results  == 0)
-                print "Iter: {$iter} | Cost: {$cost_}\n";
+            
+            if($this->problem_type == 'classification'){
+                $Y_prediction = $this->classification_prediction($Y_hat);
+                $class_rate = $this->compute_classification_rate($this->Ytrain, $Y_prediction);
+            }
+
+            if($iter % $this->print_intervals  == 0){
+                print "Iter: {$iter} | Cost: {$cost_}";
+                if($this->problem_type == 'classification'){
+                    print  " | Class. rate: {$class_rate}";
+                }
+                print "\n";
+            }
             if($cost_ > $cost){
-                break;
+                $this->learning_rate = $this->learning_rate*0.99;
             }else{
                 $cost = $cost_;
+                $weights = $weights_;
+            }
+            if($this->learning_rate < pow(10,-8)){
+                break;
             }
         }
         $this->weights = $weights;
@@ -397,8 +524,11 @@ class Ann
 
     /**
      * Returns the trained weights
+     * 
+     * @return array
      */
-    public function getWeights(){
+    public function getWeights(): array
+    {
         return $this->weights;
     }
 }

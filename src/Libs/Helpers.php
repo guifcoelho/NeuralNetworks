@@ -42,16 +42,28 @@ class Helpers
      * @param int $size
      * @return array
      */
-    public static function array_of_random_numbers(int $min, int $max, int $size): array
+    public static function array_of_random_numbers(int $size): array
     {
-        $arr = array_rand( range( $min , $max*1000 , 1 ), $size );
-        if($size == 1){
-            $arr = [$arr];
-        }
-        forEach($arr as &$el){
-            $el = $el/1000;
+        $arr = [];
+        for($i=0;$i<$size;$i++){
+            $x = mt_rand()/mt_getrandmax();
+            $y = mt_rand()/mt_getrandmax();
+            
+            $arr[] = sqrt(-2*log($x))*cos(2*pi()*$y)*1 + 0;
         }
         return $arr;
+    }
+
+    /**
+     * Searchs an array for a value
+     */
+    public static function find_in_array(array $arr, $value): bool
+    {
+        foreach($arr as $el){
+            if($el === $value)
+                return true;
+        }
+        return false;
     }
 
 }
