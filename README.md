@@ -1,1 +1,1 @@
-Package to train and predict with neural networks
+Train and predict with neural networks in PHP
